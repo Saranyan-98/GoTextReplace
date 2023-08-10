@@ -1,4 +1,4 @@
-package src
+package mapper
 
 import (
 	"bufio"
@@ -9,6 +9,8 @@ import (
 type Tags struct {
 	Names []string
 }
+
+// YAML file and source file path should be assigned to the Struct, then Mapper method needs to be called to execute the task
 type Mapper struct {
 	Tags     Tags
 	Filename string
@@ -17,7 +19,8 @@ type Mapper struct {
 	Keys     map[string]interface{}
 }
 
-func Reader(filename string) (Tags, *os.File, error) {
+// Read the file and get the Tags
+func Reader(filename string, tagType string) (Tags, *os.File, error) {
 
 	file, err := os.Open(filename)
 	if err != nil {

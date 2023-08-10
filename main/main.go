@@ -3,14 +3,14 @@ package main
 import (
 	"fmt"
 
-	"github.com/Saranyan-98/mapper/src"
+	"github.com/Saranyan-98/mapper"
 )
 
 func main() {
 
-	getMap := src.Mapper{}
+	getMap := mapper.Mapper{}
 
-	getMap.Filename = "test.txt"
+	getMap.Filename = "sample.txt"
 	getMap.YAMLfile = "tags.yaml"
 	err := getMap.Mapper()
 	if err != nil {

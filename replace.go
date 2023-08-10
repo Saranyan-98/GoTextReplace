@@ -1,4 +1,4 @@
-package src
+package mapper
 
 import (
 	"fmt"
@@ -9,11 +9,19 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// Generic Function to convert Interface to String
+func InterfaceToString(value interface{}) string {
+	return fmt.Sprintf("%v", value)
+}
+
+// Generic Function to Check the errors
 func CheckError(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
+
+// Get YAML Key-Values from file
 func GetYAMLValues(filename string) (map[string]interface{}, error) {
 
 	var data map[string]interface{}
@@ -27,6 +35,7 @@ func GetYAMLValues(filename string) (map[string]interface{}, error) {
 	return data, nil
 }
 
+// Validate to check whether all the keys present in the file is present in the YAML file
 func Validate(Tags Tags, Keys map[string]interface{}) error {
 
 	for i := range Tags.Names {
@@ -39,6 +48,7 @@ func Validate(Tags Tags, Keys map[string]interface{}) error {
 	return nil
 }
 
+// Replace the Tags with corresponding Values from the YAML
 func Replace(keys map[string]interface{}, filename string) error {
 
 	file, err := os.Open(filename)
@@ -50,20 +60,22 @@ func Replace(keys map[string]interface{}, filename string) error {
 	fileString := string(fileContent)
 
 	for key, value := range keys {
-		newContent := strings.ReplaceAll(fileString, fmt.Sprintf("{{%s}}", key), value.(string))
+
+		newContent := strings.ReplaceAll(fileString, fmt.Sprintf("{{%s}}", key), InterfaceToString(value))
 		fileString = newContent
 	}
 
 	err = os.WriteFile("new.txt", []byte(fileString), 0664)
-
 	CheckError(err)
 
 	return nil
 }
+
+// Final Mapper Function which executes the logics in sync
 func (m *Mapper) Mapper() error {
 
 	var err error
-	m.Tags, m.FileObj, err = Reader(m.Filename)
+	m.Tags, m.FileObj, err = Reader(m.Filename, "handlebar")
 	CheckError(err)
 
 	m.Keys, err = GetYAMLValues(m.YAMLfile)
