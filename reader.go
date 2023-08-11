@@ -12,11 +12,13 @@ type Tags struct {
 
 // YAML file and source file path should be assigned to the Struct, then Mapper method needs to be called to execute the task
 type Mapper struct {
-	Tags     Tags
-	Filename string
-	FileObj  *os.File
-	YAMLfile string
-	Keys     map[string]interface{}
+	Tags                Tags
+	Filename            string
+	FileObj             *os.File
+	YAMLfile            string
+	OutputFileName      string
+	OutputFileExtension string
+	Keys                map[string]interface{}
 }
 
 // Read the file and get the Tags

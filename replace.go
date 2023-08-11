@@ -49,9 +49,9 @@ func Validate(Tags Tags, Keys map[string]interface{}) error {
 }
 
 // Replace the Tags with corresponding Values from the YAML
-func Replace(keys map[string]interface{}, filename string) error {
+func Replace(keys map[string]interface{}, fileName, outputFileName, outputExtension string) error {
 
-	file, err := os.Open(filename)
+	file, err := os.Open(fileName)
 	CheckError(err)
 
 	fileContent, err := io.ReadAll(file)
@@ -65,7 +65,7 @@ func Replace(keys map[string]interface{}, filename string) error {
 		fileString = newContent
 	}
 
-	err = os.WriteFile("new.txt", []byte(fileString), 0664)
+	err = os.WriteFile(fmt.Sprintf("%s.%s", outputFileName, outputExtension), []byte(fileString), 0664)
 	CheckError(err)
 
 	return nil
@@ -84,7 +84,7 @@ func (m *Mapper) Mapper() error {
 	err = Validate(m.Tags, m.Keys)
 	CheckError(err)
 
-	err = Replace(m.Keys, m.Filename)
+	err = Replace(m.Keys, m.Filename, m.OutputFileName, m.OutputFileExtension)
 	CheckError(err)
 
 	return nil
