@@ -22,11 +22,11 @@ func CheckError(err error) {
 }
 
 // Get YAML Key-Values from file
-func GetYAMLValues(filename string) (map[string]interface{}, error) {
+func (m *Mapper) GetYAMLValues() (map[string]interface{}, error) {
 
 	var data map[string]interface{}
 
-	ymlFile, err := os.ReadFile(filename)
+	ymlFile, err := os.ReadFile(m.Filename)
 	CheckError(err)
 
 	err = yaml.Unmarshal(ymlFile, &data)
@@ -36,12 +36,12 @@ func GetYAMLValues(filename string) (map[string]interface{}, error) {
 }
 
 // Validate to check whether all the keys present in the file is present in the YAML file
-func Validate(Tags Tags, Keys map[string]interface{}) error {
+func (m *Mapper) Validate() error {
 
-	for i := range Tags.Names {
-		_, ok := Keys[Tags.Names[i]]
+	for i := range m.Tags.Names {
+		_, ok := m.Keys[m.Tags.Names[i]]
 		if !ok {
-			return fmt.Errorf("%s does not exist in YAML file", Tags.Names[i])
+			return fmt.Errorf("%s does not exist in YAML file", m.Tags.Names[i])
 		}
 
 	}
@@ -49,9 +49,9 @@ func Validate(Tags Tags, Keys map[string]interface{}) error {
 }
 
 // Replace the Tags with corresponding Values from the YAML
-func Replace(keys map[string]interface{}, fileName, outputFileName, outputExtension string) error {
+func (m *Mapper) Replace() error {
 
-	file, err := os.Open(fileName)
+	file, err := os.Open(m.Filename)
 	CheckError(err)
 
 	fileContent, err := io.ReadAll(file)
@@ -59,13 +59,19 @@ func Replace(keys map[string]interface{}, fileName, outputFileName, outputExtens
 
 	fileString := string(fileContent)
 
-	for key, value := range keys {
+	for key, value := range m.Keys {
 
 		newContent := strings.ReplaceAll(fileString, fmt.Sprintf("{{%s}}", key), InterfaceToString(value))
 		fileString = newContent
 	}
 
-	err = os.WriteFile(fmt.Sprintf("%s.%s", outputFileName, outputExtension), []byte(fileString), 0664)
+	if m.OutputFileName == "" || m.OutputFileExtension == "" {
+		err = os.WriteFile(m.Filename, []byte(fileString), 0664)
+		CheckError(err)
+		return nil
+	}
+
+	err = os.WriteFile(fmt.Sprintf("%s.%s", m.OutputFileName, m.OutputFileExtension), []byte(fileString), 0664)
 	CheckError(err)
 
 	return nil
@@ -75,16 +81,16 @@ func Replace(keys map[string]interface{}, fileName, outputFileName, outputExtens
 func (m *Mapper) Mapper() error {
 
 	var err error
-	m.Tags, m.FileObj, err = Reader(m.Filename, "handlebar")
+	m.Tags, m.FileObj, err = m.Reader()
 	CheckError(err)
 
-	m.Keys, err = GetYAMLValues(m.YAMLfile)
+	m.Keys, err = m.GetYAMLValues()
 	CheckError(err)
 
-	err = Validate(m.Tags, m.Keys)
+	err = m.Validate()
 	CheckError(err)
 
-	err = Replace(m.Keys, m.Filename, m.OutputFileName, m.OutputFileExtension)
+	err = m.Replace()
 	CheckError(err)
 
 	return nil

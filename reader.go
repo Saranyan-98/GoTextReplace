@@ -22,9 +22,9 @@ type Mapper struct {
 }
 
 // Read the file and get the Tags
-func Reader(filename string, tagType string) (Tags, *os.File, error) {
+func (m *Mapper) Reader() (Tags, *os.File, error) {
 
-	file, err := os.Open(filename)
+	file, err := os.Open(m.Filename)
 	if err != nil {
 		return Tags{}, file, err
 	}
