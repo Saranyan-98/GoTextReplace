@@ -11,7 +11,7 @@ To quickly get started with GoTextReplace, follow these simple steps:
 1. Import the package:
 
    ```go
-   import "github.com/your-username/GoTextReplace"
+   import "github.com/Saranyan-98/GoTextReplace"
    ```
 
 2. Initialize the TextReplace struct with your configuration:
