@@ -1,4 +1,4 @@
-module github.com/Saranyan-98/mapper
+module github.com/Saranyan-98/GoTextReplace
 
 go 1.20
 

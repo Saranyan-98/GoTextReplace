@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 	"strings"
-
-	"gopkg.in/yaml.v2"
 )
 
 // Generic Function to convert Interface to String
@@ -21,27 +19,13 @@ func CheckError(err error) {
 	}
 }
 
-// Get YAML Key-Values from file
-func (m *Mapper) GetYAMLValues() (map[string]interface{}, error) {
-
-	var data map[string]interface{}
-
-	ymlFile, err := os.ReadFile(m.Filename)
-	CheckError(err)
-
-	err = yaml.Unmarshal(ymlFile, &data)
-	CheckError(err)
-
-	return data, nil
-}
-
 // Validate to check whether all the keys present in the file is present in the YAML file
-func (m *Mapper) Validate() error {
+func (t *TextReplace) Validate() error {
 
-	for i := range m.Tags.Names {
-		_, ok := m.Keys[m.Tags.Names[i]]
+	for i := range t.Tags.Names {
+		_, ok := t.Keys[t.Tags.Names[i]]
 		if !ok {
-			return fmt.Errorf("%s does not exist in YAML file", m.Tags.Names[i])
+			return fmt.Errorf("%s does not exist in YAML file", t.Tags.Names[i])
 		}
 
 	}
@@ -49,9 +33,9 @@ func (m *Mapper) Validate() error {
 }
 
 // Replace the Tags with corresponding Values from the YAML
-func (m *Mapper) Replace() error {
+func (t *TextReplace) Replace() error {
 
-	file, err := os.Open(m.Filename)
+	file, err := os.Open(t.Filename)
 	CheckError(err)
 
 	fileContent, err := io.ReadAll(file)
@@ -59,38 +43,47 @@ func (m *Mapper) Replace() error {
 
 	fileString := string(fileContent)
 
-	for key, value := range m.Keys {
+	for key, value := range t.Keys {
 
 		newContent := strings.ReplaceAll(fileString, fmt.Sprintf("{{%s}}", key), InterfaceToString(value))
 		fileString = newContent
 	}
 
-	if m.OutputFileName == "" || m.OutputFileExtension == "" {
-		err = os.WriteFile(m.Filename, []byte(fileString), 0664)
+	if t.OutputFileName == "" || t.OutputPath == "" {
+		err = os.WriteFile(t.Filename, []byte(fileString), 0664)
 		CheckError(err)
 		return nil
 	}
 
-	err = os.WriteFile(fmt.Sprintf("%s.%s", m.OutputFileName, m.OutputFileExtension), []byte(fileString), 0664)
+	_, err = os.ReadDir(t.OutputPath)
+	if os.IsNotExist(err) {
+		err := os.MkdirAll(t.OutputPath, os.ModePerm)
+		if err != nil {
+			fmt.Printf("Error creating directories: %v\n", err)
+			return err
+		}
+	}
+
+	err = os.WriteFile(fmt.Sprintf("%s/%s", t.OutputPath, t.OutputFileName), []byte(fileString), 0664)
 	CheckError(err)
 
 	return nil
 }
 
 // Final Mapper Function which executes the logics in sync
-func (m *Mapper) Mapper() error {
+func (t *TextReplace) Run() error {
 
 	var err error
-	m.Tags, m.FileObj, err = m.Reader()
+	t.Tags, t.FileObj, err = t.Reader()
 	CheckError(err)
 
-	m.Keys, err = m.GetYAMLValues()
+	t.Keys, err = t.GetYAMLValues()
 	CheckError(err)
 
-	err = m.Validate()
+	err = t.Validate()
 	CheckError(err)
 
-	err = m.Replace()
+	err = t.Replace()
 	CheckError(err)
 
 	return nil

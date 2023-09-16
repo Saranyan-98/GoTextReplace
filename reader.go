@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"os"
 	"regexp"
+
+	"gopkg.in/yaml.v2"
 )
 
 type Tags struct {
@@ -11,20 +13,20 @@ type Tags struct {
 }
 
 // YAML file and source file path should be assigned to the Struct, then Mapper method needs to be called to execute the task
-type Mapper struct {
-	Tags                Tags
-	Filename            string
-	FileObj             *os.File
-	YAMLfile            string
-	OutputFileName      string
-	OutputFileExtension string
-	Keys                map[string]interface{}
+type TextReplace struct {
+	Tags           Tags
+	Filename       string
+	FileObj        *os.File
+	YAMLfile       string
+	OutputPath     string
+	OutputFileName string
+	Keys           map[string]interface{}
 }
 
 // Read the file and get the Tags
-func (m *Mapper) Reader() (Tags, *os.File, error) {
+func (t *TextReplace) Reader() (Tags, *os.File, error) {
 
-	file, err := os.Open(m.Filename)
+	file, err := os.Open(t.Filename)
 	if err != nil {
 		return Tags{}, file, err
 	}
@@ -48,4 +50,18 @@ func (m *Mapper) Reader() (Tags, *os.File, error) {
 	}
 
 	return Tags, file, nil
+}
+
+// Get YAML Key-Values from file
+func (t *TextReplace) GetYAMLValues() (map[string]interface{}, error) {
+
+	var data map[string]interface{}
+
+	ymlFile, err := os.ReadFile(t.YAMLfile)
+	CheckError(err)
+
+	err = yaml.Unmarshal(ymlFile, &data)
+	CheckError(err)
+
+	return data, nil
 }
